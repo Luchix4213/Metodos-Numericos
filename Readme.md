@@ -3,11 +3,12 @@
 Este repositorio contiene un solucionador interactivo para sistemas de ecuaciones lineales utilizando el método de descomposición LU (Lower-Upper).
 
 ## Demo en Vivo
-Puedes acceder a la aplicación web directamente en: https://luchix4213.github.io/Metodos-Numericos/
+Puedes acceder a la aplicación web directamente en: 
+https://metodos-numerico.netlify.app/
 
 ## Contenido
 - `index.html`: La aplicación web principal con el solucionador de sistemas LU.
-- `EJERCICIO 1 Y 2.xlsx`: Archivo de Excel con ejercicios y ejemplos relacionados.
+- `ejercicios1y2.xlsx`: Archivo de Excel con ejercicios y ejemplos relacionados.
 
 ## Autor
 **Luis Alfredo Quispe Ortiz**
