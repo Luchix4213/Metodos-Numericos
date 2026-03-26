@@ -3,14 +3,14 @@
 Este repositorio contiene un solucionador interactivo para sistemas de ecuaciones lineales utilizando el método de descomposición LU (Lower-Upper).
 
 ## Demo en Vivo
-Puedes acceder a la aplicación web directamente en: https://amilcar06.github.io/metodos-numericos/
+Puedes acceder a la aplicación web directamente en: https://luchix4213.github.io/Metodos-Numericos/
 
 ## Contenido
 - `index.html`: La aplicación web principal con el solucionador de sistemas LU.
 - `EJERCICIO 1 Y 2.xlsx`: Archivo de Excel con ejercicios y ejemplos relacionados.
 
 ## Autor
-**Amilcar Josias Yujra Chipana**
+**Luis Alfredo Quispe Ortiz**
 
 ## Descripción
 Esta herramienta permite resolver sistemas de ecuaciones lineales de manera interactiva, aplicando el método de factorización LU. Es útil para estudiantes y profesionales que trabajan con métodos numéricos en matemáticas e ingeniería.
