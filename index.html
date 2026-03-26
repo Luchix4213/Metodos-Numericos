@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Factorización LU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .matrix-grid {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900 selection:bg-blue-200">
+
+    <div class="max-w-5xl mx-auto px-4 py-12">
+        <header class="text-center mb-12 fade-in">
+            <h1
+                class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 mb-3 block">
+                Resolución de Sistemas LU</h1>
+            <p class="text-slate-500 text-lg">Doolittle, Crout y Cholesky (Dimensión máx. 6)</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Configuración -->
+            <div class="lg:col-span-1 space-y-6 fade-in" style="animation-delay: 0.1s; animation-fill-mode: both;">
+                <div
+                    class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+                    <h2 class="text-lg font-bold mb-4 flex items-center text-slate-800">
+                        <span
+                            class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm">1</span>
+                        Configuración
+                    </h2>
+
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5">Dimensión (n)</label>
+                            <input type="number" id="dim" min="2" max="6" value="3"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium text-slate-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5">Método</label>
+                            <select id="method"
+                                class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium text-slate-700">
+                                <option value="doolittle">Doolittle (Lii = 1)</option>
+                                <option value="crout">Crout (Uii = 1)</option>
+                                <option value="cholesky">Cholesky (U = Lᵀ)</option>
+                            </select>
+                        </div>
+
+                        <button onclick="generateInputs()"
+                            class="w-full bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-semibold py-3 rounded-xl transition-all shadow-md shadow-slate-200 focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">
+                            Reiniciar Matriz
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl shadow-lg text-white">
+                    <h3 class="font-bold flex items-center gap-2 mb-3 text-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Instrucciones
+                    </h3>
+                    <ul class="text-sm space-y-2.5 opacity-90 font-medium">
+                        <li class="flex items-start"><span class="mr-2">•</span> Ingrese los coeficientes de la matriz
+                            <b>A</b>.</li>
+                        <li class="flex items-start"><span class="mr-2">•</span> Ingrese los términos independientes
+                            <b>b</b>.</li>
+                        <li class="flex items-start"><span class="mr-2">•</span> Cholesky requiere que la matriz sea
+                            simétrica y definida positiva.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Entrada de Datos -->
+            <div class="lg:col-span-2 space-y-6 fade-in" style="animation-delay: 0.2s; animation-fill-mode: both;">
+                <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-6 flex items-center text-slate-800">
+                        <span
+                            class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm">2</span>
+                        Matriz de Coeficientes [A | b]
+                    </h2>
+
+                    <div id="matrix-container" class="overflow-x-auto pb-4 custom-scrollbar">
+                        <!-- Generado por JS -->
+                    </div>
+
+                    <button onclick="solve()"
+                        class="mt-6 w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 active:scale-[0.99]">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Calcular Solución
+                    </button>
+                </div>
+
+                <!-- Resultados -->
+                <div id="results" class="hidden space-y-6 fade-in">
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+                        <h2 class="text-xl font-extrabold mb-8 text-slate-800 flex items-center">
+                            <span
+                                class="bg-emerald-100 text-emerald-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </span>
+                            Resultados de la Factorización
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                                <h3
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Matriz L
+                                </h3>
+                                <div id="resL" class="font-mono text-sm overflow-x-auto"></div>
+                            </div>
+                            <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                                <h3
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Matriz U
+                                </h3>
+                                <div id="resU" class="font-mono text-sm overflow-x-auto"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-10 pt-8 border-t border-slate-100">
+                            <h3 class="text-xl font-bold text-center mb-6 text-slate-800">Solución del Sistema</h3>
+                            <div id="resX" class="flex flex-wrap justify-center gap-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error-box"
+                    class="hidden bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-start fade-in">
+                    <svg class="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span id="error-message" class="font-medium"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateInputs() {
+            const n = parseInt(document.getElementById('dim').value);
+            const container = document.getElementById('matrix-container');
+            container.innerHTML = '';
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('error-box').classList.add('hidden');
+
+            const grid = document.createElement('div');
+            grid.className = 'matrix-grid';
+            grid.style.gridTemplateColumns = `repeat(${n}, minmax(60px, 1fr)) 40px minmax(60px, 1fr)`;
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.id = `a-${i}-${j}`;
+                    input.placeholder = `a${i + 1}${j + 1}`;
+                    input.className = 'w-full p-2.5 text-center text-sm font-medium border border-slate-200 bg-white rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all';
+                    // Valores por defecto del ejemplo de la imagen
+                    const defaults = [[8, 4, -1], [-2, 5, 1], [2, -1, 6]];
+                    if (n === 3 && defaults[i] && defaults[i][j] !== undefined) input.value = defaults[i][j];
+                    grid.appendChild(input);
+                }
+
+                const sep = document.createElement('div');
+                sep.className = 'flex items-center justify-center text-xl font-light text-slate-300';
+                sep.innerText = '|';
+                grid.appendChild(sep);
+
+                const bInput = document.createElement('input');
+                bInput.type = 'number';
+                bInput.id = `b-${i}`;
+                bInput.placeholder = `b${i + 1}`;
+                bInput.className = 'w-full p-2.5 text-center text-sm font-bold text-blue-900 border border-blue-200 bg-blue-50/50 rounded-lg focus:border-blue-500 focus:bg-blue-50 focus:ring-2 focus:ring-blue-200 outline-none transition-all';
+                const bDefaults = [11, 4, 7];
+                if (n === 3) bInput.value = bDefaults[i];
+                grid.appendChild(bInput);
+            }
+
+            container.appendChild(grid);
+        }
+
+        function solve() {
+            const n = parseInt(document.getElementById('dim').value);
+            const method = document.getElementById('method').value;
+            const errorBox = document.getElementById('error-box');
+            const errorMessage = document.getElementById('error-message');
+            errorBox.classList.add('hidden');
+
+            let A = Array.from({ length: n }, () => Array(n).fill(0));
+            let b = Array(n).fill(0);
+
+            try {
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        let val = parseFloat(document.getElementById(`a-${i}-${j}`).value);
+                        if (isNaN(val)) throw new Error(`El valor a${i + 1}${j + 1} no es válido.`);
+                        A[i][j] = val;
+                    }
+                    let bVal = parseFloat(document.getElementById(`b-${i}`).value);
+                    if (isNaN(bVal)) throw new Error(`El valor b${i + 1} no es válido.`);
+                    b[i] = bVal;
+                }
+
+                let L = Array.from({ length: n }, () => Array(n).fill(0));
+                let U = Array.from({ length: n }, () => Array(n).fill(0));
+
+                if (method === 'doolittle') {
+                    for (let i = 0; i < n; i++) {
+                        for (let k = i; k < n; k++) {
+                            let sum = 0;
+                            for (let j = 0; j < i; j++) sum += (L[i][j] * U[j][k]);
+                            U[i][k] = A[i][k] - sum;
+                        }
+                        for (let k = i; k < n; k++) {
+                            if (i === k) L[i][i] = 1;
+                            else {
+                                let sum = 0;
+                                for (let j = 0; j < i; j++) sum += (L[k][j] * U[j][i]);
+                                if (U[i][i] === 0) throw new Error("División por cero. El sistema de ecuaciones requiere pivoteo (no soportado).");
+                                L[k][i] = (A[k][i] - sum) / U[i][i];
+                            }
+                        }
+                    }
+                } else if (method === 'crout') {
+                    for (let i = 0; i < n; i++) {
+                        for (let k = i; k < n; k++) {
+                            let sum = 0;
+                            for (let j = 0; j < i; j++) sum += (L[k][j] * U[j][i]);
+                            L[k][i] = A[k][i] - sum;
+                        }
+                        for (let k = i; k < n; k++) {
+                            if (i === k) U[i][i] = 1;
+                            else {
+                                let sum = 0;
+                                for (let j = 0; j < i; j++) sum += (L[i][j] * U[j][k]);
+                                if (L[i][i] === 0) throw new Error("División por cero. El sistema de ecuaciones requiere pivoteo (no soportado).");
+                                U[i][k] = (A[i][k] - sum) / L[i][i];
+                            }
+                        }
+                    }
+                } else if (method === 'cholesky') {
+                    for (let i = 0; i < n; i++) {
+                        for (let j = 0; j <= i; j++) {
+                            let sum = 0;
+                            for (let k = 0; k < j; k++) sum += L[i][k] * L[j][k];
+
+                            if (i === j) {
+                                let val = A[i][i] - sum;
+                                if (val <= 0) throw new Error("Método de Cholesky fallido: La matriz no es definida positiva.");
+                                L[i][j] = Math.sqrt(val);
+                            } else {
+                                if (L[j][j] === 0) throw new Error("División por cero en Cholesky.");
+                                L[i][j] = (A[i][j] - sum) / L[j][j];
+                            }
+                        }
+                    }
+                    // Para Cholesky U es L transpuesta
+                    for (let i = 0; i < n; i++) {
+                        for (let j = 0; j < n; j++) U[i][j] = L[j][i];
+                    }
+                }
+
+                // Ly = b (Sustitución progresiva)
+                let y = Array(n).fill(0);
+                for (let i = 0; i < n; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < i; j++) sum += L[i][j] * y[j];
+                    if (L[i][i] === 0) throw new Error("Matriz L singular, no se puede continuar.");
+                    y[i] = (b[i] - sum) / L[i][i];
+                }
+
+                // Ux = y (Sustitución regresiva)
+                let x = Array(n).fill(0);
+                for (let i = n - 1; i >= 0; i--) {
+                    let sum = 0;
+                    for (let j = i + 1; j < n; j++) sum += U[i][j] * x[j];
+                    if (U[i][i] === 0) throw new Error("Matriz U singular, no se puede encontrar una solución única.");
+                    x[i] = (y[i] - sum) / U[i][i];
+                }
+
+                displayResults(L, U, x);
+
+            } catch (e) {
+                errorMessage.innerText = e.message;
+                errorBox.classList.remove('hidden');
+                document.getElementById('results').classList.add('hidden');
+            }
+        }
+
+        function displayResults(L, U, x) {
+            const fmt = (v) => {
+                if (Number.isInteger(v)) return v;
+                return Math.abs(v) < 1e-10 ? "0" : v.toFixed(4).replace(/\.?0+$/, '');
+            };
+
+            const renderMat = (mat) => {
+                return mat.map(row =>
+                    `<div class="grid" style="grid-template-columns: repeat(${row.length}, 1fr); gap: 12px; margin-bottom: 6px;">` +
+                    row.map(val => `<span class="text-right text-slate-700 font-medium">${fmt(val)}</span>`).join('') +
+                    `</div>`
+                ).join('');
+            };
+
+            document.getElementById('resL').innerHTML = renderMat(L);
+            document.getElementById('resU').innerHTML = renderMat(U);
+
+            const xDiv = document.getElementById('resX');
+            xDiv.innerHTML = x.map((val, i) => `
+                <div class="bg-white border-2 border-slate-100 hover:border-blue-200 px-6 py-4 rounded-2xl min-w-[120px] text-center shadow-sm transition-colors">
+                    <span class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">X${i + 1}</span>
+                    <span class="text-2xl font-black text-blue-600">${fmt(val)}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('results').classList.remove('hidden');
+            // Timeout para asegurar que el display block se aplique antes del scroll
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // Inicializar
+        generateInputs();
+
+        // Listeners
+        document.getElementById('dim').addEventListener('change', generateInputs);
+        document.getElementById('method').addEventListener('change', generateInputs);
+    </script>
+</body>
+
+</html>
